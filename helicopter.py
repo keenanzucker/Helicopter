@@ -46,7 +46,7 @@ class Helicopter(pygame.sprite.Sprite):
         if self.jump:
             self.move[1] += -.2
         else:
-            self.move[1] += .3
+            self.move[1] += .2
         if abs(self.move[1]) <= .1:
             if self.jump:
                 self.move[1]=-1
@@ -81,7 +81,6 @@ class Wall(pygame.sprite.Sprite):
 
 class Baddie(pygame.sprite.Sprite):
     def __init__(self,heli_pos):
-        print 'baddie made'
         pygame.sprite.Sprite.__init__(self)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
@@ -138,7 +137,7 @@ def main():
         # l,data = inp.read()
         # if l:
         #     loudness=audioop.max(data, 2)
-        # if loudness>=1000:
+        # if loudness>=2000:
         #     helicopter.jump=1
         # else:
         #     helicopter.jump=0
