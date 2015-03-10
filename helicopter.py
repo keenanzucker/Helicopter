@@ -101,7 +101,6 @@ def main():
     inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
     inp.setperiodsize(160)
 
-    pygame.init()
     xres=1000
     yres=600
     screen = pygame.display.set_mode((1000, 600))
@@ -128,7 +127,7 @@ def main():
             if event.type == QUIT:
                 return
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                return
+                loadPage()
             elif event.type == KEYDOWN and event.key == K_SPACE:
                 helicopter.jump=1
             elif event.type == KEYUP and event.key == K_SPACE:
@@ -166,5 +165,39 @@ def main():
         allsprites.draw(screen)
         pygame.display.flip()   
 
+def loadPage():
+
+    pygame.init()
+    xsize = 1000
+    ysize = 600
+    screen = pygame.display.set_mode((xsize, ysize))
+    pygame.display.set_caption('Is it... helicopter?')
+    background = pygame.Surface(screen.get_size())
+    background = background.convert()
+    background.fill((250, 250, 250))
+    screen.blit(background, (0, 0))
+    pygame.display.flip()
+
+    font = pygame.font.Font(None, 76)
+
+    text = font.render('Press Space to Play!', 1, (10,10,10)) 
+    textrect = text.get_rect()
+    textrect.centerx = screen.get_rect().centerx
+    textrect.centery = screen.get_rect().centery
+    screen.blit(text, textrect)
+
+    
+
+    pygame.display.flip()
+
+    while 1:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                return
+            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                pygame.quit()
+            elif event.type == KEYDOWN and event.key == K_SPACE:
+                main()
+
 if __name__ == '__main__':
-    main()
+    loadPage()

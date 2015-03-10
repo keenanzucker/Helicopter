@@ -26,8 +26,7 @@ class Helicopter(pygame.sprite.Sprite):
         self.timehit=time.time()
         self.burning=0
         self.lives=5
-
-    def update(self):
+    def update(self, level):
         if self.rect.top<self.area.top or self.rect.bottom>self.area.bottom:
             self.burning=0
             self.move[1]=0
@@ -39,21 +38,18 @@ class Helicopter(pygame.sprite.Sprite):
             pos=self.rect.topleft
             self.image, self.rect = load_image('box.png')
             self.rect.topleft=pos
-
         self.cruize()
-
     def cruize(self):
         if self.jump:
             self.move[1] += -.2
         else:
-            self.move[1] += .3
+            self.move[1] += .2
         if abs(self.move[1]) <= .1:
             if self.jump:
                 self.move[1]=-1
             else:
                 self.move[1] = 1
         self.rect = self.rect.move(self.move)
-
     def hit(self):
         if not self.burning:
             self.lives-=1
@@ -64,22 +60,38 @@ class Helicopter(pygame.sprite.Sprite):
             self.burning=1
 
 class Wall(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self,start_pos):
+        pygame.sprite.Sprite.__init__(self) 
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
-        pygame.sprite.Sprite.__init__(self) 
         self.image, self.rect = load_image('wall.png')    
-        self.rect.topright = 0, 0
         self.length=self.rect.bottom
-        self.move=[-3,0]
-    def update(self):
+        self.move=[-1,0]
+        self.rect.topright = start_pos, random.randint(0,self.area.bottom-self.length)
+    def update(self,level):
+        self.move[0]=-level-1.0
         self.rect=self.rect.move(self.move)
         if self.rect.right<0:
             self.restart()
     def restart(self):
         self.rect.topleft=self.area.right,random.randint(0,self.area.bottom-self.length)
 
+class Baddie(pygame.sprite.Sprite):
+    def __init__(self,heli_pos):
+        pygame.sprite.Sprite.__init__(self)
+        screen = pygame.display.get_surface()
+        self.area = screen.get_rect()
+        self.image, self.rect = load_image('baddie.png')    
+        self.rect.topleft = self.area.right,heli_pos
+        self.move=[-5,0]
+        self.passed=0
+    def update(self,level):
+        self.rect=self.rect.move(self.move)
+        if self.rect.right<0:
+            self.passed=1
+
 def main():
+    pygame.init()
     #audio initialization
     inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE,alsaaudio.PCM_NONBLOCK)
     inp.setchannels(1)
@@ -87,11 +99,13 @@ def main():
     inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
     inp.setperiodsize(160)
 
-    
-    xres=1000
+    xres=1200
     yres=600
-    screen = pygame.display.set_mode((1000, 600))
+    level=0
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((xres, yres))
     pygame.display.set_caption('Is it... helicopter?')
+    font = pygame.font.Font(None, 36)
     background = pygame.Surface(screen.get_size())
     background = background.convert()
     background.fill((250, 250, 250))
@@ -99,79 +113,82 @@ def main():
     pygame.display.flip()
 
     helicopter = Helicopter()
-    wall1=Wall()
-    wall2=Wall()
-    wall2.rect.topright=xres/2,50       #moves the second wall to half way across the screen to give it a head start
+    wall0=Wall(xres)
+    wall1=Wall(xres+xres/4)
+    wall2=Wall(xres/2)
+    wall3=Wall(3*xres/4)
 
-    allsprites = pygame.sprite.RenderPlain([wall1,wall2,helicopter])
-    clock = pygame.time.Clock()
+    sprite_list=[wall0,wall1,wall2,wall3,helicopter]
+    baddie_exists=0
+
+    title_font = pygame.font.Font(None, 76)
+    title_text = font.render('Press Space to Play!', 1, (10,10,10)) 
+    textrect = title_text.get_rect()
+    textrect.centerx = screen.get_rect().centerx
+    textrect.centery = screen.get_rect().centery
+    screen.blit(title_text, textrect)
+    pygame.display.flip()
+    
+    breaker=0
+    while 1:
+        for event in pygame.event.get():
+            if event.type == KEYDOWN and event.key == K_SPACE:
+                breaker=1
+                break
+            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                pygame.quit()
+        if breaker:
+            break
+
+    time_start=time.time()
 
     while 1:
         clock.tick(60)
+        score=int(time.time()*10-time_start*10)
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                loadPage()
+                main()
             elif event.type == KEYDOWN and event.key == K_SPACE:
                 helicopter.jump=1
             elif event.type == KEYUP and event.key == K_SPACE:
                 helicopter.jump=0
 
-        # l,data = inp.read()
-        # if l:
-        #     loudness=audioop.max(data, 2)
-        # if loudness>=1000:
-        #     helicopter.jump=1
-        # else:
-        #     helicopter.jump=0
+        """l,data = inp.read()
+        if l:
+            loudness=audioop.max(data, 2)
+        if loudness>=2000:
+            helicopter.jump=1
+        else:
+            helicopter.jump=0"""
+        if score<400.0:
+            level=score/100.0
+
+        if baddie_exists==0 and score>100:
+            baddie=Baddie(helicopter.rect.top)
+            sprite_list.append(baddie)
+            baddie_exists=1
+
+        if baddie_exists:
+            if baddie.passed==1:
+                sprite_list.remove(baddie)
+                baddie_exists=0
 
         hitbox = helicopter.rect.inflate(-5, -5)
-        if hitbox.colliderect(wall1.rect) or hitbox.colliderect(wall2.rect):
-            helicopter.hit()
+        for spryte in sprite_list: #because sprite was taken
+            if hitbox.colliderect(spryte.rect) and spryte!=helicopter:
+                helicopter.hit()
 
-        font = pygame.font.Font(None, 36)
-        liveCounter = font.render("Lives: " + str(helicopter.lives), 1, (10, 10, 10))
-
-        allsprites.update()
+        scoreCounter = font.render("Score: " + str(score), 1, (10, 10, 10))
+        lifeCounter = font.render("Lives: " + str(helicopter.lives), 1, (10, 10, 10))
+        allsprites = pygame.sprite.RenderPlain(sprite_list)
+        allsprites.update(level)
         screen.blit(background, (0, 0))
-        screen.blit(liveCounter, (xres*.8, yres*.1))
+        screen.blit(lifeCounter, (xres*.8, yres*.1))
+        screen.blit(scoreCounter, (xres*.6, yres*.1))
         allsprites.draw(screen)
-        pygame.display.flip()
-
-def loadPage():
-
-    pygame.init()
-    xsize = 1000
-    ysize = 600
-    screen = pygame.display.set_mode((xsize, ysize))
-    pygame.display.set_caption('Is it... helicopter?')
-    background = pygame.Surface(screen.get_size())
-    background = background.convert()
-    background.fill((250, 250, 250))
-    screen.blit(background, (0, 0))
-    pygame.display.flip()
-
-    font = pygame.font.Font(None, 76)
-
-    text = font.render('Press Space to Play!', 1, (10,10,10)) 
-    textrect = text.get_rect()
-    textrect.centerx = screen.get_rect().centerx
-    textrect.centery = screen.get_rect().centery
-    screen.blit(text, textrect)
-
-    
-
-    pygame.display.flip()
-
-    while 1:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                return
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                pygame.quit()
-            elif event.type == KEYDOWN and event.key == K_SPACE:
-                main()
+        pygame.display.flip()   
 
 if __name__ == '__main__':
-    loadPage()
+    main()
