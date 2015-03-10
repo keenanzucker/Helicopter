@@ -134,15 +134,16 @@ def main():
             elif event.type == KEYUP and event.key == K_SPACE:
                 helicopter.jump=0
 
-        # l,data = inp.read()
-        # if l:
-        #     loudness=audioop.max(data, 2)
-        # if loudness>=2000:
-        #     helicopter.jump=1
-        # else:
-        #     helicopter.jump=0
+        l,data = inp.read()
+        if l:
+            loudness=audioop.max(data, 2)
+        if loudness>=2000:
+            helicopter.jump=1
+        else:
+            helicopter.jump=0
  
-        if abs(time.time()-time_start)%10<1 and baddie_exists==0:
+ # abs(time.time()-time_start)%10<1 and
+        if baddie_exists==0:
             baddie=Baddie(helicopter.rect.top)
             sprite_list.append(baddie)
             baddie_exists=1
