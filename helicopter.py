@@ -133,13 +133,13 @@ def main():
             elif event.type == KEYUP and event.key == K_SPACE:
                 helicopter.jump=0
 
-        """l,data = inp.read()
+        l,data = inp.read()
         if l:
             loudness=audioop.max(data, 2)
         if loudness>=2000:
             helicopter.jump=1
         else:
-            helicopter.jump=0"""
+            helicopter.jump=0
  
  # abs(time.time()-time_start)%10<1 and
         if baddie_exists==0:
@@ -185,8 +185,6 @@ def loadPage():
     textrect.centerx = screen.get_rect().centerx
     textrect.centery = screen.get_rect().centery
     screen.blit(text, textrect)
-
-    
 
     pygame.display.flip()
 

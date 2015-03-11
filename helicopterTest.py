@@ -6,6 +6,7 @@ from pygame.locals import *
 import time
 
 def load_image(name):
+    """Code to load images from folder into game screen"""
     try:
         image = pygame.image.load(name)
     except pygame.error, message:
@@ -15,6 +16,8 @@ def load_image(name):
     return image, image.get_rect()
 
 class Helicopter(pygame.sprite.Sprite):
+    """Helicopter class defines the square sprite than can move up and down. Contains a simple physics engine
+    and some red invinsibility frames when collisions are detected. Uses cruize method to control physics. """
     def __init__(self):
         pygame.sprite.Sprite.__init__(self) 
         self.image, self.rect = load_image('box.png')
@@ -60,6 +63,9 @@ class Helicopter(pygame.sprite.Sprite):
             self.burning=1
 
 class Wall(pygame.sprite.Sprite):
+    """The wall class is used four times to create walls that are randomly positioned and move across 
+    the game screen at the helicopter. They reset into a new position on the right side of the screen
+    after passing through the left side with restart method."""
     def __init__(self,start_pos):
         pygame.sprite.Sprite.__init__(self) 
         screen = pygame.display.get_surface()
@@ -77,6 +83,8 @@ class Wall(pygame.sprite.Sprite):
         self.rect.topleft=self.area.right,random.randint(0,self.area.bottom-self.length)
 
 class Baddie(pygame.sprite.Sprite):
+    """The Baddie class contains the code for the bad guy that moves across the screen to 
+    try to intercept your helicopter sprite. Contains init and update methods only"""
     def __init__(self,heli_pos):
         pygame.sprite.Sprite.__init__(self)
         screen = pygame.display.get_surface()
@@ -91,17 +99,23 @@ class Baddie(pygame.sprite.Sprite):
             self.passed=1
 
 def main():
+    """The main function of the helicopter game. It sets up the load screen and game, creates and updates the sprites, 
+    and renders the score and lives."""
     pygame.init()
-    #audio initialization
+
+    #audio initialization code
     inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE,alsaaudio.PCM_NONBLOCK)
     inp.setchannels(1)
     inp.setrate(8000)
     inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
     inp.setperiodsize(160)
 
+
+    #Setting up basic game elements like screen size, clock, and background display.
     xres=1200
     yres=600
     level=0
+    audioOn = 0
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((xres, yres))
     pygame.display.set_caption('Is it... helicopter?')
@@ -112,6 +126,8 @@ def main():
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
+
+    #Initialized helicopter and wall classes. 
     helicopter = Helicopter()
     wall0=Wall(xres)
     wall1=Wall(xres+xres/4)
@@ -121,20 +137,42 @@ def main():
     sprite_list=[wall0,wall1,wall2,wall3,helicopter]
     baddie_exists=0
 
-    title_font = pygame.font.Font(None, 76)
+
+    #Creates load screen text
+   # title_font = pygame.font.Font(None, 150)
     title_text = font.render('Press Space to Play!', 1, (10,10,10)) 
     textrect = title_text.get_rect()
     textrect.centerx = screen.get_rect().centerx
-    textrect.centery = screen.get_rect().centery
+    #textrect.centery = screen.get_rect().centery
+    textrect.centery = 100
     screen.blit(title_text, textrect)
+
+    buttonText   = font.render('Or Click Button For Audio Control!', 1, (10,10,10))
+    buttonPos = buttonText.get_rect()
+    buttonPos.centerx = screen.get_rect().centerx
+    buttonPos.centery = 250
+    screen.blit(buttonText, buttonPos)
+
+    button = pygame.draw.rect(screen, (50,50,150), (xres/2 - 100,350,200,100), 0)
+    #screen.blit(button, (100,100))
     pygame.display.flip()
-    
+
+    #Keyboard input for load screen
     breaker=0
     while 1:
         for event in pygame.event.get():
-            if event.type == KEYDOWN and event.key == K_SPACE:
+            mousePos = pygame.mouse.get_pos()
+            if event.type == QUIT:
+                pygame.quit()
+            elif event.type == KEYDOWN and event.key == K_SPACE:
                 breaker=1
                 break
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if button.collidepoint(mousePos):
+                    print 'COLLIDE'
+                    audioOn = 1
+                    breaker = 1
+                    break
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 pygame.quit()
         if breaker:
@@ -142,29 +180,42 @@ def main():
 
     time_start=time.time()
 
+
+    #Keyboard input for running game screen
     while 1:
         clock.tick(60)
         score=int(time.time()*10-time_start*10)
+
+         #Code for audio input version of control
+        if audioOn == 1:
+            l,data = inp.read()
+            print audioop.max(data, 2)
+            if l:
+                loudness=audioop.max(data, 2)
+            if loudness>=1000:
+                helicopter.jump=1
+            else:
+                helicopter.jump=0
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 main()
-            elif event.type == KEYDOWN and event.key == K_SPACE:
+            elif event.type == KEYDOWN and event.key == K_SPACE and audioOn == 0:
                 helicopter.jump=1
-            elif event.type == KEYUP and event.key == K_SPACE:
+            elif event.type == KEYUP and event.key == K_SPACE and audioOn == 0:
                 helicopter.jump=0
 
-        """l,data = inp.read()
-        if l:
-            loudness=audioop.max(data, 2)
-        if loudness>=2000:
-            helicopter.jump=1
-        else:
-            helicopter.jump=0"""
-        if score<400.0:
+
+       
+
+        #Increases speed of walls as game progresses
+        if score<500.0:
             level=score/100.0
 
+
+        #Creates a baddie at position of your character! Scary!
         if baddie_exists==0 and score>100:
             baddie=Baddie(helicopter.rect.top)
             sprite_list.append(baddie)
@@ -175,11 +226,15 @@ def main():
                 sprite_list.remove(baddie)
                 baddie_exists=0
 
+
+        #Collision detection for helicopter
         hitbox = helicopter.rect.inflate(-5, -5)
         for spryte in sprite_list: #because sprite was taken
             if hitbox.colliderect(spryte.rect) and spryte!=helicopter:
                 helicopter.hit()
 
+
+        #Rendering of game screen with live updates for score and lives. 
         scoreCounter = font.render("Score: " + str(score), 1, (10, 10, 10))
         lifeCounter = font.render("Lives: " + str(helicopter.lives), 1, (10, 10, 10))
         allsprites = pygame.sprite.RenderPlain(sprite_list)
