@@ -6,6 +6,7 @@ from pygame.locals import *
 pygame.init()
 
 def load_image(name):
+    """Code to load images from folder into game screen"""
     try:
         image = pygame.image.load(name)
     except pygame.error, message:
@@ -38,6 +39,7 @@ class Helicopter(Game_element):
         self.lives=5
 
     def update(self):
+        """Updates the Helicopter to next position"""
         if self.rect.top<self.area.top or self.rect.bottom>self.area.bottom:
             self.burning=0
             self.move[1]=0
@@ -57,6 +59,7 @@ class Helicopter(Game_element):
         self.cruize()
 
     def cruize(self):
+        """Physics engine for moving up and down"""
         if self.jump:
             self.move[1] += -.2
         else:
@@ -69,6 +72,7 @@ class Helicopter(Game_element):
         self.rect = self.rect.move(self.move)
 
     def hit(self):
+        """ Sets up invincibility if Helicopter gets hit. """
         if not self.burning:
             self.lives-=1
             pos=self.rect.topleft
@@ -82,27 +86,32 @@ class Wall(Game_element):
     the game screen at the helicopter. They reset into a new position on the right side of the screen
     after passing through the left side with restart method."""
     def __init__(self):
+        """ Initilizes wall class with image and movement to the left """
         super(Wall, self).__init__('wall.png')    
         self.rect.topright = 0, 0
         self.length=self.rect.bottom
         self.move=[-3,0]
     def update(self):
+        """ Updates position of wall based on level"""
         self.rect=self.rect.move(self.move)
         if self.rect.right<0:
             self.restart()
     def restart(self):
+        """ Restarts position of wall to random position on right side of screen."""
         self.rect.topleft=self.area.right,random.randint(0,self.area.bottom-self.length)
 
 class Baddie(Game_element):
     """The Baddie class contains the code for the bad guy that moves across the screen to 
     try to intercept your helicopter sprite. Contains init and update methods only"""
     def __init__(self):
+        """Initilizes Baddie's position and movement """
         super(Baddie, self).__init__('baddie.png')   
         self.rect.topleft = self.area.right,0
         self.move = [-5,0]
         self.passed = 0 
         self.exists = 0
     def update(self,helicopter):
+        """ Update baddies position to right side of screen"""
         if not self.exists and time.time()-model.time_start>2:
             self.rect.topleft = self.area.right, helicopter.rect.top
             self.exists = 1
@@ -123,7 +132,9 @@ class Background(object):
         pygame.display.flip()
 
 class Model(object):
+    """Sets up the model for the game experience """
     def __init__(self,keyboard):
+        """Initilizes the many variables to sete up the gameplay """
         #audio setup:
         self.keyboard=keyboard
         if not keyboard:
@@ -151,6 +162,8 @@ class Model(object):
         self.clock = pygame.time.Clock()
 
     def update(self,helicopter,wall1,wall2,baddie):
+        """Updates the model with the either keyboard or audio input. Sets actions to different keys. 
+        Also updates all of the characters."""
         self.clock.tick(60)
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -177,16 +190,18 @@ class Model(object):
         baddie.update(helicopter)
 
     def visualize(self,background):
+        """ Displays the screen and draws all of the sprites to the screen. """
         background.screen.blit(background.background, (0, 0))
         self.allsprites.draw(background.screen)
         pygame.display.flip()
 
     def run(self):
+        """ Loops continously until the game is quit, updating and visualizing the game"""
         while 1:
             self.update(self.helicopter,self.wall1,self.wall2,self.baddie)
             self.visualize(self.background)
 
 if __name__ == '__main__':
-    keyboard=False   #change this to operate the helicopter with audio or keyboard
+    keyboard=True   #change this to operate the helicopter with audio or keyboard
     model=Model(keyboard)
     model.run()
