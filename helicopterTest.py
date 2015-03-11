@@ -19,6 +19,7 @@ class Helicopter(pygame.sprite.Sprite):
     """Helicopter class defines the square sprite than can move up and down. Contains a simple physics engine
     and some red invinsibility frames when collisions are detected. Uses cruize method to control physics. """
     def __init__(self):
+        """Initilizes the Helicopter with certain traits"""
         pygame.sprite.Sprite.__init__(self) 
         self.image, self.rect = load_image('box.png')
         screen = pygame.display.get_surface()
@@ -30,6 +31,7 @@ class Helicopter(pygame.sprite.Sprite):
         self.burning=0
         self.lives=5
     def update(self, level):
+        """Updates the Helicopter to next position"""
         if self.rect.top<self.area.top or self.rect.bottom>self.area.bottom:
             self.burning=0
             self.move[1]=0
@@ -43,6 +45,7 @@ class Helicopter(pygame.sprite.Sprite):
             self.rect.topleft=pos
         self.cruize()
     def cruize(self):
+        """Physics engine for moving up and down"""
         if self.jump:
             self.move[1] += -.2
         else:
@@ -54,6 +57,7 @@ class Helicopter(pygame.sprite.Sprite):
                 self.move[1] = 1
         self.rect = self.rect.move(self.move)
     def hit(self):
+        """ Sets up invincibility if Helicopter gets hit. """
         if not self.burning:
             self.lives-=1
             pos=self.rect.topleft
@@ -67,6 +71,7 @@ class Wall(pygame.sprite.Sprite):
     the game screen at the helicopter. They reset into a new position on the right side of the screen
     after passing through the left side with restart method."""
     def __init__(self,start_pos):
+        """ Initilizes wall class with image and movement to the left """
         pygame.sprite.Sprite.__init__(self) 
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
@@ -75,17 +80,20 @@ class Wall(pygame.sprite.Sprite):
         self.move=[-1,0]
         self.rect.topright = start_pos, random.randint(0,self.area.bottom-self.length)
     def update(self,level):
+        """ Updates position of wall based on level"""
         self.move[0]=-level-1.0
         self.rect=self.rect.move(self.move)
         if self.rect.right<0:
             self.restart()
     def restart(self):
+        """ Restarts position of wall to random position on right side of screen."""
         self.rect.topleft=self.area.right,random.randint(0,self.area.bottom-self.length)
 
 class Baddie(pygame.sprite.Sprite):
     """The Baddie class contains the code for the bad guy that moves across the screen to 
     try to intercept your helicopter sprite. Contains init and update methods only"""
     def __init__(self,heli_pos):
+        """Initilizes Baddie's position and movement """
         pygame.sprite.Sprite.__init__(self)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
@@ -94,6 +102,7 @@ class Baddie(pygame.sprite.Sprite):
         self.move=[-5,0]
         self.passed=0
     def update(self,level):
+        """ Update baddies position to right side of screen"""
         self.rect=self.rect.move(self.move)
         if self.rect.right<0:
             self.passed=1
@@ -211,7 +220,7 @@ def main():
        
 
         #Increases speed of walls as game progresses
-        if score<500.0:
+        if score<400.0:
             level=score/100.0
 
 
