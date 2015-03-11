@@ -108,7 +108,7 @@ def main():
     inp.setchannels(1)
     inp.setrate(8000)
     inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-    inp.setperiodsize(160)
+    inp.setperiodsize(300)
 
 
     #Setting up basic game elements like screen size, clock, and background display.
@@ -160,6 +160,7 @@ def main():
     #Keyboard input for load screen
     breaker=0
     while 1:
+
         for event in pygame.event.get():
             mousePos = pygame.mouse.get_pos()
             if event.type == QUIT:
@@ -185,11 +186,12 @@ def main():
     while 1:
         clock.tick(60)
         score=int(time.time()*10-time_start*10)
-
+        if helicopter.lives == 0:
+            main()
          #Code for audio input version of control
         if audioOn == 1:
             l,data = inp.read()
-            print audioop.max(data, 2)
+            #print audioop.max(data, 2)
             if l:
                 loudness=audioop.max(data, 2)
             if loudness>=1000:
@@ -206,8 +208,6 @@ def main():
                 helicopter.jump=1
             elif event.type == KEYUP and event.key == K_SPACE and audioOn == 0:
                 helicopter.jump=0
-
-
        
 
         #Increases speed of walls as game progresses

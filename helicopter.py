@@ -134,9 +134,10 @@ def main():
                 helicopter.jump=0
 
         l,data = inp.read()
+        print audioop.max(data,2)
         if l:
             loudness=audioop.max(data, 2)
-        if loudness>=2000:
+        if loudness>=500:
             helicopter.jump=1
         else:
             helicopter.jump=0
