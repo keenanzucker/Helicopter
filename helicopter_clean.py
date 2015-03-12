@@ -90,9 +90,10 @@ class Wall(Game_element):
         super(Wall, self).__init__('wall.png')    
         self.rect.topright = 0, 0
         self.length=self.rect.bottom
-        self.move=[-3,0]
-    def update(self):
+        self.move=[-1,0]
+    def update(self, level):
         """ Updates position of wall based on level"""
+        self.move[0]=-level-1.0
         self.rect=self.rect.move(self.move)
         if self.rect.right<0:
             self.restart()
@@ -110,8 +111,9 @@ class Baddie(Game_element):
         self.move = [-5,0]
         self.passed = 0 
         self.exists = 0
-    def update(self,helicopter):
+    def update(self,helicopter, level):
         """ Update baddies position to right side of screen"""
+        self.move[0]=-level-3.0
         if not self.exists and time.time()-model.time_start>2:
             self.rect.topleft = self.area.right, helicopter.rect.top
             self.exists = 1
@@ -122,20 +124,18 @@ class Baddie(Game_element):
                 self.exists = 0
 
 class Background(object):
+    """ Creates background screen and flips the display.  """
     def __init__(self,xres,yres):
+        """ Initializes game screen"""
         self.screen = pygame.display.set_mode((1000, 600))
-        self.helicopter = Helicopter()
         pygame.display.set_caption('Is it... helicopter?')
         self.background = pygame.Surface(self.screen.get_size())
         self.background = self.background.convert()
         self.background.fill((250, 250, 250))
         self.screen.blit(self.background, (0, 0))
-
         pygame.display.flip()
 
-
-
-"""def loadScreen(screen):
+def loadScreen(screen):
     #Creates load screen text
     xres = 1000
     yres = 600
@@ -154,8 +154,7 @@ class Background(object):
 
     button = pygame.draw.rect(screen, (50,50,150), (xres/2 - 100,350,200,100), 0)
     #screen.blit(button, (100,100))
-    pygame.display.flip()"""
-
+    pygame.display.flip()
 
 class Model(object):
     """Sets up the model for the game experience """
@@ -169,6 +168,8 @@ class Model(object):
             self.inp.setrate(8000)
             self.inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
             self.inp.setperiodsize(160)
+
+        level = 0
 
         #screen setup:
         xres=1000
@@ -187,11 +188,10 @@ class Model(object):
         self.time_start = time.time()
         self.clock = pygame.time.Clock()
 
-   
-
-    def update(self,helicopter,wall1,wall2,baddie):
+    def update(self,helicopter,wall1,wall2,baddie, level):
         """Updates the model with the either keyboard or audio input. Sets actions to different keys. 
         Also updates all of the characters."""
+
         self.clock.tick(60)
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -206,36 +206,49 @@ class Model(object):
             l,data = self.inp.read()
             if l:
                 loudness=audioop.max(data, 2)
-            if loudness>=500:
+            if loudness>=800:
                 helicopter.jump=1
             else:
                 helicopter.jump=0
 
         self.allsprites = pygame.sprite.RenderPlain(self.sprite_list)
         helicopter.update()
-        wall1.update()
-        wall2.update()
-        baddie.update(helicopter)
+        wall1.update(level)
+        wall2.update(level)
+        baddie.update(helicopter, level)
 
-    def visualize(self,background):
+    def visualize(self,background, score):
         """ Displays the screen and draws all of the sprites to the screen. """
+
         background.screen.blit(background.background, (0, 0))
         self.allsprites.draw(background.screen)
         font = pygame.font.Font(None, 36)
         lifeCounter = font.render("Lives: " + str(self.helicopter.lives), 1, (10, 10, 10))
+        scoreCounter = font.render("Score: " + str(score), 1, (10, 10, 10))
         background.screen.blit(lifeCounter, (800, 50))
+        background.screen.blit(scoreCounter, (600, 50))
 
         pygame.display.flip()
 
+    def getLevel():
+        return level
+
     def run(self):
         """ Loops continously until the game is quit, updating and visualizing the game"""
+        """while 1:
+            loadScreen(self.background.screen, )"""
+        score = 0
         while 1:
             #loadScreen(self.background.screen)
-            self.update(self.helicopter,self.wall1,self.wall2,self.baddie)
-            self.visualize(self.background)
+            score += 1
+            level = score / 400.0
+            self.update(self.helicopter,self.wall1,self.wall2,self.baddie, level)
+            self.visualize(self.background, score)
             if self.helicopter.lives == 0:
                 pygame.quit()
+            
 
+    
 if __name__ == '__main__':
     keyboard=True   #change this to operate the helicopter with audio or keyboard
     model=Model(keyboard)
