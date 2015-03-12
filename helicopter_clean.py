@@ -214,6 +214,7 @@ class Model(object):
         score = 0
         self.running=1
         while self.running:
+
             #loadScreen(self.background.screen)
             score += 1
             level = score / 400.0
@@ -221,6 +222,7 @@ class Model(object):
             self.visualize(self.background, score)
             if self.helicopter.lives == 0:
                 self.running=0
+
             
 
 if __name__ == '__main__':
