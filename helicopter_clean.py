@@ -135,27 +135,6 @@ class Background(object):
         self.screen.blit(self.background, (0, 0))
         pygame.display.flip()
 
-"""def loadScreen(screen):
-    #Creates load screen text
-    xres = 1000
-    yres = 600
-    font = pygame.font.Font(None, 36)
-    title_text = font.render('Press Space to Play!', 1, (10,10,10)) 
-    textrect = title_text.get_rect()
-    textrect.centerx = screen.get_rect().centerx
-    textrect.centery = 100
-    screen.blit(title_text, textrect)
-
-    buttonText   = font.render('Or Click Button For Audio Control!', 1, (10,10,10))
-    buttonPos = buttonText.get_rect()
-    buttonPos.centerx = screen.get_rect().centerx
-    buttonPos.centery = 250
-    screen.blit(buttonText, buttonPos)
-
-    button = pygame.draw.rect(screen, (50,50,150), (xres/2 - 100,350,200,100), 0)
-    #screen.blit(button, (100,100))
-    pygame.display.flip()"""
-
 class Model(object):
     """Sets up the model for the game experience """
     def __init__(self,keyboard):
@@ -232,8 +211,6 @@ class Model(object):
 
     def run(self):
         """ Loops continously until the game is quit, updating and visualizing the game"""
-        """while 1:
-            loadScreen(self.background.screen, )"""
         score = 0
         while 1:
             #loadScreen(self.background.screen)
@@ -245,8 +222,7 @@ class Model(object):
                 pygame.quit()
             
 
-    
 if __name__ == '__main__':
-    keyboard=True   #change this to operate the helicopter with audio or keyboard
+    keyboard=False   #change this to operate the helicopter with audio or keyboard
     model=Model(keyboard)
     model.run()
