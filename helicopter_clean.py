@@ -174,9 +174,9 @@ class Model(object):
         self.clock.tick(60)
         for event in pygame.event.get():
             if event.type == QUIT:
-                pygame.quit()
+                model.running=0
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                pygame.quit()
+                model.running=0
             elif self.keyboard and event.type == KEYDOWN and event.key == K_SPACE:
                 helicopter.jump=1
             elif self.keyboard and event.type == KEYUP and event.key == K_SPACE:
@@ -212,14 +212,15 @@ class Model(object):
     def run(self):
         """ Loops continously until the game is quit, updating and visualizing the game"""
         score = 0
-        while 1:
+        self.running=1
+        while self.running:
             #loadScreen(self.background.screen)
             score += 1
             level = score / 400.0
             self.update(self.helicopter,self.wall1,self.wall2,self.baddie, level)
             self.visualize(self.background, score)
             if self.helicopter.lives == 0:
-                pygame.quit()
+                self.running=0
             
 
 if __name__ == '__main__':
