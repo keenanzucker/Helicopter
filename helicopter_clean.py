@@ -212,14 +212,15 @@ class Model(object):
     def run(self):
         """ Loops continously until the game is quit, updating and visualizing the game"""
         score = 0
-        while 1:
+        running=1
+        while running:
             #loadScreen(self.background.screen)
             score += 1
             level = score / 400.0
             self.update(self.helicopter,self.wall1,self.wall2,self.baddie, level)
             self.visualize(self.background, score)
             if self.helicopter.lives == 0:
-                pygame.quit()
+                running=0
             
 
 if __name__ == '__main__':
