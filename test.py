@@ -124,18 +124,14 @@ class Baddie(Game_element):
 class Background(object):
     def __init__(self,xres,yres):
         self.screen = pygame.display.set_mode((1000, 600))
-        self.helicopter = Helicopter()
         pygame.display.set_caption('Is it... helicopter?')
         self.background = pygame.Surface(self.screen.get_size())
         self.background = self.background.convert()
         self.background.fill((250, 250, 250))
         self.screen.blit(self.background, (0, 0))
-
         pygame.display.flip()
 
-
-
-"""def loadScreen(screen):
+def loadScreen(screen):
     #Creates load screen text
     xres = 1000
     yres = 600
@@ -154,9 +150,8 @@ class Background(object):
 
     button = pygame.draw.rect(screen, (50,50,150), (xres/2 - 100,350,200,100), 0)
     #screen.blit(button, (100,100))
-    pygame.display.flip()"""
-
-
+    pygame.display.flip()
+    
 class Model(object):
     """Sets up the model for the game experience """
     def __init__(self,keyboard):
@@ -221,20 +216,18 @@ class Model(object):
         """ Displays the screen and draws all of the sprites to the screen. """
         background.screen.blit(background.background, (0, 0))
         self.allsprites.draw(background.screen)
-        font = pygame.font.Font(None, 36)
-        lifeCounter = font.render("Lives: " + str(self.helicopter.lives), 1, (10, 10, 10))
-        background.screen.blit(lifeCounter, (800, 50))
-
         pygame.display.flip()
 
     def run(self):
         """ Loops continously until the game is quit, updating and visualizing the game"""
+        startGame = 0
+
         while 1:
-            #loadScreen(self.background.screen)
+            """if startGame == 0:
+                loadScreen(self.background.screen)
+            else:"""
             self.update(self.helicopter,self.wall1,self.wall2,self.baddie)
             self.visualize(self.background)
-            if self.helicopter.lives == 0:
-                pygame.quit()
 
 if __name__ == '__main__':
     keyboard=True   #change this to operate the helicopter with audio or keyboard
