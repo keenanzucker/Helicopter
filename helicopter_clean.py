@@ -135,7 +135,7 @@ class Background(object):
         self.screen.blit(self.background, (0, 0))
         pygame.display.flip()
 
-def loadScreen(screen):
+"""def loadScreen(screen):
     #Creates load screen text
     xres = 1000
     yres = 600
@@ -154,7 +154,7 @@ def loadScreen(screen):
 
     button = pygame.draw.rect(screen, (50,50,150), (xres/2 - 100,350,200,100), 0)
     #screen.blit(button, (100,100))
-    pygame.display.flip()
+    pygame.display.flip()"""
 
 class Model(object):
     """Sets up the model for the game experience """
@@ -229,9 +229,6 @@ class Model(object):
         background.screen.blit(scoreCounter, (600, 50))
 
         pygame.display.flip()
-
-    def getLevel():
-        return level
 
     def run(self):
         """ Loops continously until the game is quit, updating and visualizing the game"""
